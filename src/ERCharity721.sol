@@ -11,10 +11,6 @@ interface IERCharity721 is IERC721{
 
 	//function setTimeout(uint256 newTimeout) public;
 
-
-
-
-
 }
 
 contract ERCharity721 is IERCharity721, ERC721, Ownable {

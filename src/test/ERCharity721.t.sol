@@ -8,6 +8,7 @@ import 'src/test/utils/IVM.sol';
 contract ContractTest is DSTest {
 
 	ERCharity721 c;
+	Vm vm = Vm(address(HEVM_ADDRESS));
 	string constant TOKEN_NAME = "TestName";
 	string constant TOKEN_SYMBOL = "TestSymbol";
 	address payable constant recepient = payable(address(0xFAB));
