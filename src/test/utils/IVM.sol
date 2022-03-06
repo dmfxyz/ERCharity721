@@ -4,6 +4,8 @@ import 'ds-test/test.sol';
 
 interface Vm {
 	function prank(address) external;
+	function startPrank(address) external;
+	function stopPrank() external;
 	function warp(uint256) external;
-	function deal(address, address) external;
+	function deal(address, uint256) external;
 }
