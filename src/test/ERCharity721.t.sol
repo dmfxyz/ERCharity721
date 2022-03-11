@@ -24,20 +24,48 @@ contract ContractTest is DSTest {
         assertEq(c.recipient(), recepient);
     }
 
-    function testMintOne() public {
+    function testMintTenAssembly() public {
         address minter = address(0xB33F);
         vm.deal(minter, 1 ether);
         vm.startPrank(minter);
-        c.mint{value: c.COST()}(1);
+        c.mintAssembly{value: c.COST() * 10}(10);
         vm.stopPrank();
-        emit log_address(c.ownerOf(0));
-        emit log_address(address(this));
-        console.log(address(this));
+
         assertEq(minter, c.ownerOf(0));
+        assertEq(minter, c.ownerOf(1));
+        assertEq(minter, c.ownerOf(2));
+        assertEq(minter, c.ownerOf(3));
+        assertEq(minter, c.ownerOf(4));
+        assertEq(minter, c.ownerOf(5));
+        assertEq(minter, c.ownerOf(6));
+        assertEq(minter, c.ownerOf(7));
+        assertEq(minter, c.ownerOf(8));
+        assertEq(minter, c.ownerOf(9));
+        assertEq(10, c.balanceOf(minter));
+    }
+
+    function testMintTenSane() public {
+        address minter = address(0xB33F);
+        vm.deal(minter, 1 ether);
+        vm.startPrank(minter);
+        c.mintSane{value: c.COST() * 10}(10);
+        vm.stopPrank();
+
+        assertEq(minter, c.ownerOf(0));
+        assertEq(minter, c.ownerOf(1));
+        assertEq(minter, c.ownerOf(2));
+        assertEq(minter, c.ownerOf(3));
+        assertEq(minter, c.ownerOf(4));
+        assertEq(minter, c.ownerOf(5));
+        assertEq(minter, c.ownerOf(6));
+        assertEq(minter, c.ownerOf(7));
+        assertEq(minter, c.ownerOf(8));
+        assertEq(minter, c.ownerOf(9));
+        assertEq(10, c.balanceOf(minter));
     }
 
     function testGetTokenURI() public {
-        c.mint{value: c.COST()}(1);
+        c.mintSane{value: c.COST()}(1);
         c.tokenURI(0);
     }
 }

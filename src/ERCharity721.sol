@@ -28,26 +28,40 @@ contract ERCharity721 is ERC721, Ownable {
 		recipient = recipient_;
 	}
 
-	function mint(uint256 _count) external payable {
+	function mintAssembly(uint256 _count) external payable {
 		require(_count <= MAXMINTPERTX, "EXCEEDED MAX MINT PER TX");
 		require(msg.value == COST * _count, "MSG VALUE MUST MATCH COST");
-		// require(msg.sender.code.length == 0 || ERC721TokenReceiver(msg.sender).onERC721Received(msg.sender, address(0), 0, "") ==
-  //               ERC721TokenReceiver.onERC721Received.selector, "UNSAFE RECPIENT");
+		unchecked {
+			require(_count + currentSupply < MAX_SUPPLY, "EXCEEDED MAX SUPPLY");
+			for (uint id = currentSupply; id < currentSupply + _count; ++id){
+				assembly {
+					mstore(0x0, id)
+					mstore(0x20, ownerOf.slot)
+					sstore(keccak256(0x0, 0x40), caller())
+				}
+			}
+			assembly {
+				mstore(0x0, caller())
+				mstore(0x20, balanceOf.slot)
+				let loc := keccak256(0x0, 0x40)
+				sstore(loc, add(sload(loc), _count))
+			}
+		}
+	}
+
+	function mintSane(uint256 _count) external payable {
+		require(_count <= MAXMINTPERTX, "EXCEEDED MAX MINT PER TX");
+		require(msg.value == COST * _count, "MSG VALUE MUST MATCH COST");
 		unchecked {
 			require(_count + currentSupply < MAX_SUPPLY, "EXCEEDED MAX SUPPLY");
 
-			for(uint id = currentSupply; id < _count; ++id){
-				// assembly {
-				// 	let oo := add(ownerOf.slot, ownerOf.offset)
-				// 	sstore(keccak256(add(oo,id), 64), caller())
-				// }
+			for(uint id = currentSupply; id < currentSupply + _count; ++id){
 				ownerOf[id] = msg.sender;
-				emit Transfer(address(0), msg.sender, id);
 			}
 			balanceOf[msg.sender] += _count;
 			currentSupply += _count;
-
 		}
+
 	}
 
 	function tokenURI(uint256 _id) public view virtual override returns (string memory) {
