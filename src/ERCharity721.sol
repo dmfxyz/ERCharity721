@@ -67,8 +67,16 @@ contract ERCharity721 is ERC721, Ownable {
 	function tokenURI(uint256 _id) public view virtual override returns (string memory) {
 		require(_id < currentSupply, "NOT YET MINTED");
 		return string(abi.encodePacked(baseURI, Strings.toString(_id), ".json"));
-
 	}
+
+	function sendToRecipient() public {
+		uint256 balance = address(this).balance;
+		(bool transferTx, ) = recipient.call{value: balance}("");
+		require(transferTx);
+	}
+
+	//fallback() external payable {}
+	receive() external payable {}
 
 
 

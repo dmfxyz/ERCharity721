@@ -68,4 +68,13 @@ contract ContractTest is DSTest {
         c.mintSane{value: c.COST()}(1);
         c.tokenURI(0);
     }
+
+    function testSendDirect() public {
+        address minter = address(0xf00f);
+        vm.deal(minter, 1 ether);
+        vm.startPrank(minter);
+        address(c).call{value: 1 ether}("");
+        assertEq(address(c).balance, 1 ether);
+        vm.stopPrank();
+    }
 }
