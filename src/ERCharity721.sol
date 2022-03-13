@@ -39,7 +39,7 @@ contract ERCharity721 is ERC721, Ownable {
 		require(_count <= MAXMINTPERTX, "EXCEEDED MAX MINT PER TX");
 		require(msg.value == COST * _count, "MSG VALUE MUST MATCH COST");
 		unchecked {
-			require(_count + currentSupply < MAX_SUPPLY, "EXCEEDED MAX SUPPLY");
+			require(_count + currentSupply <= MAX_SUPPLY, "EXCEEDED MAX SUPPLY");
             // can probably make this assembly too? I did this but reverted it. Can't remember why 
 			for (uint id = currentSupply; id < currentSupply + _count; ++id){ 
 				assembly {
