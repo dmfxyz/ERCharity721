@@ -15,7 +15,7 @@ contract ContractTest is DSTest {
 	address payable constant recepient = payable(address(0xFAB));
 
     function setUp() public {
-    	c = new ERCharity721(TOKEN_NAME, TOKEN_SYMBOL, recepient);
+    	c = new ERCharity721(TOKEN_NAME, TOKEN_SYMBOL, recepient, 1 ether);
     }
 
     function testConstructor() public {
@@ -24,44 +24,43 @@ contract ContractTest is DSTest {
         assertEq(c.recipient(), recepient);
     }
 
-    function testMintTenAssembly() public {
+    function testMintTenAssembly(uint8 count) public {
+        vm.assume(count <= c.MAXMINTPERTX());
         address minter = address(0xB33F);
-        vm.deal(minter, 1 ether);
+        vm.deal(minter, count * c.COST());
         vm.startPrank(minter);
-        c.mintAssembly{value: c.COST() * 10}(10);
+        c.mintAssembly{value: c.COST() * count}(count);
         vm.stopPrank();
-
-        assertEq(minter, c.ownerOf(0));
-        assertEq(minter, c.ownerOf(1));
-        assertEq(minter, c.ownerOf(2));
-        assertEq(minter, c.ownerOf(3));
-        assertEq(minter, c.ownerOf(4));
-        assertEq(minter, c.ownerOf(5));
-        assertEq(minter, c.ownerOf(6));
-        assertEq(minter, c.ownerOf(7));
-        assertEq(minter, c.ownerOf(8));
-        assertEq(minter, c.ownerOf(9));
-        assertEq(10, c.balanceOf(minter));
+        for (uint i; i < count; ++i) {
+            assertEq(minter, c.ownerOf(i));
+        }
+        assertEq(count, c.balanceOf(minter));
     }
 
-    function testMintTenSane() public {
+    function testMintTenSane(uint8 count) public {
+        vm.assume(count <= c.MAXMINTPERTX());
         address minter = address(0xB33F);
-        vm.deal(minter, 1 ether);
+        vm.deal(minter, count * c.COST());
         vm.startPrank(minter);
-        c.mintSane{value: c.COST() * 10}(10);
+        c.mintSane{value: c.COST() * count}(count);
         vm.stopPrank();
 
-        assertEq(minter, c.ownerOf(0));
-        assertEq(minter, c.ownerOf(1));
-        assertEq(minter, c.ownerOf(2));
-        assertEq(minter, c.ownerOf(3));
-        assertEq(minter, c.ownerOf(4));
-        assertEq(minter, c.ownerOf(5));
-        assertEq(minter, c.ownerOf(6));
-        assertEq(minter, c.ownerOf(7));
-        assertEq(minter, c.ownerOf(8));
-        assertEq(minter, c.ownerOf(9));
-        assertEq(10, c.balanceOf(minter));
+       for (uint i; i < count; ++i) {
+            assertEq(minter, c.ownerOf(i));
+        }
+        assertEq(count, c.balanceOf(minter));
+    }
+
+    function testFailMintTooManyAssembly(uint256 count) public {
+        vm.assume(count > c.MAXMINTPERTX());
+        vm.expectRevert("EXCEEDED MAX SUPPLY");
+        c.mintAssembly{value: c.COST() * count}(count);
+    }
+
+    function testFailMintTooManySane(uint256 count) public {
+        vm.assume(count > c.MAXMINTPERTX());
+        vm.expectRevert("EXCEEDED MAX SUPPLY");
+        c.mintSane{value: c.COST() * count}(count);
     }
 
     function testGetTokenURI() public {
@@ -69,12 +68,21 @@ contract ContractTest is DSTest {
         c.tokenURI(0);
     }
 
-    function testSendDirect() public {
-        address minter = address(0xf00f);
-        vm.deal(minter, 1 ether);
-        vm.startPrank(minter);
-        address(c).call{value: 1 ether}("");
-        assertEq(address(c).balance, 1 ether);
-        vm.stopPrank();
+    function testSendToRecipient() public {
+        vm.deal(address(c), 1 ether);
+        uint256 charityBalance = address(c).balance;
+        c.sendToRecipient();
+        assertEq(recepient.balance, charityBalance);
+    }
+
+    function testFailSendToRecipientBelowMinimum () public {
+        vm.expectRevert("Contract balance below withdrawal minimum");
+        vm.deal(address(c), 0.5 ether);
+        c.sendToRecipient();
+    }
+
+    function testSetMinimumWithdrawal(uint256 minimum) public {
+        c.setMinimumWithdrawal(minimum);
+        assertEq(c.minumumWithdrawal(), minimum);
     }
 }

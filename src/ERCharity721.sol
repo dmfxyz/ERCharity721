@@ -21,19 +21,27 @@ contract ERCharity721 is ERC721, Ownable {
 	uint256 public COST = 0.05 ether;
 	uint256 public MAXMINTPERTX = 100;
 	uint256 public currentSupply;
+	uint256 public minumumWithdrawal;
 
 	string public baseURI;
 
-	constructor(string memory name_, string memory symbol_, address payable recipient_) ERC721(name_, symbol_) {
-		recipient = recipient_;
-	}
+	constructor(string memory name_
+			,string memory symbol_
+			,address payable recipient_
+			,uint256 minumumWithdrawal_) 
+			ERC721(name_, symbol_) 
+			{
+				recipient = recipient_;
+				minumumWithdrawal = minumumWithdrawal_;
+			}
 
 	function mintAssembly(uint256 _count) external payable {
 		require(_count <= MAXMINTPERTX, "EXCEEDED MAX MINT PER TX");
 		require(msg.value == COST * _count, "MSG VALUE MUST MATCH COST");
 		unchecked {
 			require(_count + currentSupply < MAX_SUPPLY, "EXCEEDED MAX SUPPLY");
-			for (uint id = currentSupply; id < currentSupply + _count; ++id){
+            // can probably make this assembly too? I did this but reverted it. Can't remember why 
+			for (uint id = currentSupply; id < currentSupply + _count; ++id){ 
 				assembly {
 					mstore(0x0, id)
 					mstore(0x20, ownerOf.slot)
@@ -69,10 +77,26 @@ contract ERCharity721 is ERC721, Ownable {
 		return string(abi.encodePacked(baseURI, Strings.toString(_id), ".json"));
 	}
 
-	function sendToRecipient() public {
+	function sendToRecipient() external {
+		require(address(this).balance >= minumumWithdrawal, "Contract balance below withdrawal minimum");
 		uint256 balance = address(this).balance;
 		(bool transferTx, ) = recipient.call{value: balance}("");
 		require(transferTx);
+	}
+
+	function setMinimumWithdrawal(uint256 newMinimum_) external onlyOwnerOrRecipient {
+        minumumWithdrawal = newMinimum_;
+    }
+
+	/* Lots to think about here. 
+    * Recipient may not be an EOA or may not be able to interact
+	* Implies that owner can be trusted
+	* Maybe can have something that checks recipient codesize OR if it implements something like *receiver?
+    * !! to come back to and seek community opinion !!
+	*/	
+	modifier onlyOwnerOrRecipient() {
+		require(msg.sender == owner() || msg.sender == recipient);
+        _;
 	}
 
 	//fallback() external payable {}
