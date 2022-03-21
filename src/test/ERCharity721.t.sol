@@ -4,7 +4,7 @@ pragma solidity >=0.8.0;
 import 'ds-test/test.sol';
 import "src/ERCharity721.sol";
 import 'src/test/utils/IVM.sol';
-import 'src/test/utils/console.sol';
+import 'src/test/utils/Console.sol';
 
 contract ContractTest is DSTest {
 
