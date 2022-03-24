@@ -22,6 +22,7 @@ contract ERCharity721 is ERC721, Ownable {
 	uint256 public MAXMINTPERTX = 100;
 	uint256 public currentSupply;
 	uint256 public minumumWithdrawal;
+	uint256 private deployTimestamp;
 
 	string public baseURI;
 
@@ -33,6 +34,7 @@ contract ERCharity721 is ERC721, Ownable {
 			{
 				recipient = recipient_;
 				minumumWithdrawal = minumumWithdrawal_;
+				deployTimestamp = block.timestamp;
 			}
 
 	function mintAssembly(uint256 _count) external payable {
@@ -97,6 +99,10 @@ contract ERCharity721 is ERC721, Ownable {
 	modifier onlyOwnerOrRecipient() {
 		require(msg.sender == owner() || msg.sender == recipient);
         _;
+	}
+
+	function changeRecipient(address payable newRecipient_) external onlyOwnerOrRecipient {
+		recipient = newRecipient_;
 	}
 
 	//fallback() external payable {}
